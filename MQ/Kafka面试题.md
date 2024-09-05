@@ -138,6 +138,10 @@ KIP-500 思想，是使用社区自研的基于Raft的共识算法，替代ZooKe
 ISR是由leader维护，follower从leader同步数据有一些延迟（包括`延迟时间replica.lag.time.max.ms`和`延迟条数replica.lag.max.messages`两个维度，当前最新的版本0.10.x中只支持`replica.lag.time.max.ms`这个维度），任意一个超过阈值都会把follower剔除出ISR，存入OSR（Outof-Sync Replicas）列表，新加入的follower也会先存放在OSR中。
 
 > AR=ISR+OSR。
+> 
+> 注意：lastCaughtUpTimeMs 这个值，在 follower 的 LEO 与 leader 的 LEO 相等时 (Leader 中维护了 follower 的 LEO 信息)，被更新。而不是每次fetch时都更新
+
+> 参考链接 https://www.cnblogs.com/keepal/p/16341759.html 
 
 ## 15. 描述下 Kafka 中的领导者副本（Leader Replica）和追随者副本（Follower Replica）的区别
 
@@ -179,6 +183,9 @@ Kafka 并不支持主写从读，因为主写从读有 2 个很明 显的缺点:
 
 - **数据一致性问题**。数据从主节点转到从节点必然会有一个延时的时间窗口，这个时间 窗口会导致主从节点之间的数据不一致。某一时刻，在主节点和从节点中 A 数据的值都为 X， 之后将主节点中 A 的值修改为 Y，那么在这个变更通知到从节点之前，应用读取从节点中的 A 数据的值并不为最新的 Y，由此便产生了数据不一致的问题。
 - **延时问题**。类似 Redis 这种组件，数据从写入主节点到同步至从节点中的过程需要经历`网络→主节点内存→网络→从节点内存`这几个阶段，整个过程会耗费一定的时间。而在 Kafka 中，主从同步会比 Redis 更加耗时，它需要经历`网络→主节点内存→主节点磁盘→网络→从节点内存→从节点磁盘`这几个阶段。对延时敏感的应用而言，主写从读的功能并不太适用。
+
+## 19.kafka中的事务
+
 
 ## 参考
 
